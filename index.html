@@ -1,112 +1,334 @@
 <!doctype html>
 <html lang="bn">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#163b32">
-<meta name="description" content="ব্যক্তিগত দৈনিক আয় ও ব্যয়ের হিসাব">
-<link rel="manifest" href="manifest.webmanifest">
-<title>দৈনিক হিসাব</title>
-<style>
-:root{--green:#163b32;--mint:#e8f3ee;--bg:#f5f7f5;--ink:#17231f;--muted:#718078;--line:#e4eae6;--red:#c64b4b;--white:#fff}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif}
-header{background:var(--green);color:white;padding:24px 18px 30px;border-radius:0 0 24px 24px}
-.top{max-width:760px;margin:auto;display:flex;align-items:center;justify-content:space-between}.brand{font-size:22px;font-weight:800}.sub{font-size:13px;opacity:.78;margin-top:3px}
-.wrap{max-width:760px;margin:-12px auto 32px;padding:0 14px}
-.balance{background:white;border-radius:18px;padding:18px;box-shadow:0 8px 24px #183c3210}
-.balance small{color:var(--muted)}.big{font-size:32px;font-weight:800;margin:4px 0 12px;color:var(--green)}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#f8faf8;border-radius:13px;padding:12px}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:18px;margin-top:5px}.income{color:#188454}.expense{color:var(--red)}
-.section{display:flex;align-items:center;justify-content:space-between;margin:22px 2px 10px}.section h2{font-size:17px;margin:0}.muted{color:var(--muted);font-size:12px}
-.card{background:white;border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:12px}
-form{display:grid;gap:11px}.types{display:grid;grid-template-columns:1fr 1fr;gap:8px}.types label{border:1px solid var(--line);border-radius:12px;padding:11px;text-align:center;font-weight:700;cursor:pointer}.types input{display:none}.types label:has(input:checked){background:var(--mint);border-color:#7ba895;color:var(--green)}
-label.field{display:grid;gap:5px;font-size:13px;color:#536159}input,select{width:100%;border:1px solid #dce4de;border-radius:10px;padding:12px;background:white;font:inherit;color:var(--ink);min-height:44px}
-button{border:0;border-radius:11px;background:var(--green);color:white;padding:13px 16px;font:inherit;font-weight:700;cursor:pointer}.secondary{background:var(--mint);color:var(--green)}.danger{background:#fff0f0;color:var(--red);padding:8px 10px}.row{display:flex;gap:9px}.row>*{flex:1;min-width:0}
-.filters{display:flex;gap:8px;flex-wrap:wrap}.filters select{flex:1;min-width:130px}
-.tx{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}.tx:last-child{border:0}.dot{width:38px;height:38px;border-radius:12px;background:var(--mint);display:grid;place-items:center;font-size:18px}.txmain{flex:1;min-width:0}.txmain b{display:block;font-size:14px}.txmain small{color:var(--muted);font-size:11px}.amount{font-weight:800;white-space:nowrap}.empty{text-align:center;color:var(--muted);padding:25px 5px;font-size:14px}
-footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 0 25px}
-@media(min-width:600px){header{padding-top:30px}.wrap{padding:0 18px}.big{font-size:36px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#163b32">
+  <meta name="description" content="ব্যক্তিগত দৈনিক হিসাব-নিকাশ">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>দৈনিক হিসাব</title>
+  <!-- Chart.js CDN for Pie Chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root { --green: #163b32; --mint: #e8f3ee; --bg: #f4f7f6; --muted: #666; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); font-family: system-ui, -apple-system, sans-serif; color: #333; padding-bottom: 30px; }
+    header { background: var(--green); color: white; padding: 20px 15px; text-align: center; }
+    .top { max-width: 760px; margin: auto; }
+    .wrap { max-width: 760px; margin: -12px auto 0; padding: 0 15px; }
+    .balance { background: white; border-radius: 18px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; }
+    .balance small { color: var(--muted); font-size: 14px; }
+    .big { font-size: 28px; font-weight: bold; color: var(--green); margin-top: 5px; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    .stat { background: white; padding: 15px; border-radius: 14px; text-align: center; font-weight: bold; }
+    .stat.in { color: #2e7d32; }
+    .stat.out { color: #c62828; }
+    .section { background: white; border-radius: 16px; padding: 18px; margin-bottom: 15px; border: 1px solid #eaeeec; }
+    .card { background: white; border-radius: 16px; padding: 18px; margin-bottom: 15px; }
+    form { display: grid; gap: 11px; }
+    .types { display: flex; gap: 10px; }
+    label.field { display: grid; gap: 5px; font-size: 14px; font-weight: 5deg; }
+    input, select, button { padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; width: 100%; }
+    button { border: 0; border-radius: 11px; background: var(--green); color: white; font-weight: bold; cursor: pointer; padding: 12px; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+    .filters select { flex: 1; min-width: 120px; }
+    .tx { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+    .tx:last-child { border-bottom: 0; }
+    .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+    .btn-secondary { background: #555; }
+    .btn-outline { background: transparent; color: var(--green); border: 1px solid var(--green); }
+    footer { text-align: center; color: var(--muted); font-size: 13px; margin-top: 20px; }
+    .chart-container { position: relative; width: 100%; max-width: 320px; margin: 15px auto; }
+    @media(min-width: 600px) { header { padding-top: 30px; } }
+  </style>
 </head>
 <body>
-<header><div class="top"><div><div class="brand">দৈনিক হিসাব</div><div class="sub">আপনার ব্যক্তিগত আয়-ব্যয়ের সঙ্গী</div></div><div style="font-size:26px">৳</div></div></header>
-<main class="wrap">
-<section class="balance">
- <small>বর্তমান মোট ব্যালেন্স</small><div class="big" id="balance">৳০</div>
- <div class="stats">
-  <div class="stat"><span>এই মাসের আয়</span><strong class="income" id="monthIncome">৳০</strong></div>
-  <div class="stat"><span>এই মাসের খরচ</span><strong class="expense" id="monthExpense">৳০</strong></div>
- </div>
-</section>
-<div class="section"><h2>নতুন লেনদেন যোগ করুন</h2><span class="muted">দ্রুত হিসাব</span></div>
-<section class="card">
-<form id="entryForm">
- <div class="types">
-  <label><input type="radio" name="type" value="expense" checked> − খরচ</label>
-  <label><input type="radio" name="type" value="income"> + আয়</label>
- </div>
- <div class="row">
-  <label class="field">টাকার পরিমাণ (৳)<input id="amount" type="number" min="0.01" step="0.01" placeholder="যেমন ৫০০" required></label>
-  <label class="field">তারিখ<input id="date" type="date" required></label>
- </div>
- <div class="row">
-  <label class="field">ক্যাটাগরি<select id="category"></select></label>
-  <label class="field">বিবরণ<input id="note" maxlength="80" placeholder="যেমন বাজার খরচ"></label>
- </div>
- <button type="submit">লেনদেন সংরক্ষণ করুন</button>
-</form>
-</section>
-<div class="section"><h2>লেনদেনের তালিকা</h2><button class="secondary" id="csvBtn" type="button">CSV ডাউনলোড</button></div>
-<section class="card">
- <div class="filters">
-  <select id="filterMonth" aria-label="মাস"><option value="all">সব মাস</option></select>
-  <select id="filterType" aria-label="ধরন"><option value="all">সব লেনদেন</option><option value="income">শুধু আয়</option><option value="expense">শুধু খরচ</option></select>
- </div>
- <div id="transactions"></div>
-</section>
-<footer>আপনার তথ্য এই ডিভাইসের ব্রাউজারেই সংরক্ষিত থাকে। নিয়মিত CSV ব্যাকআপ রাখুন।</footer>
-</main>
-<script>
-const $=id=>document.getElementById(id);
-const categories={
- expense:["খাবার","বাজার","যাতায়াত","বাড়ি ভাড়া","বিদ্যুৎ/গ্যাস/পানি","চিকিৎসা","শিক্ষা","কেনাকাটা","বিনোদন","অন্যান্য"],
- income:["বেতন","ব্যবসা","ফ্রিল্যান্সিং","উপহার","অন্যান্য"]
-};
-let records=[];
-try{records=JSON.parse(localStorage.getItem("dailyHisabRecords")||"[]")}catch(e){records=[]}
-const today=new Date(); $("date").value=localDate(today);
-function localDate(d){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
-function money(n){return "৳"+Number(n||0).toLocaleString("bn-BD",{maximumFractionDigits:2})}
-function save(){localStorage.setItem("dailyHisabRecords",JSON.stringify(records))}
-function setCategories(){const t=document.querySelector('input[name="type"]:checked').value; $("category").innerHTML=categories[t].map(x=>`<option>${x}</option>`).join("")}
-document.querySelectorAll('input[name="type"]').forEach(x=>x.addEventListener("change",setCategories));setCategories();
-$("entryForm").addEventListener("submit",e=>{
- e.preventDefault();const amount=Number($("amount").value);if(!(amount>0))return;
- const type=document.querySelector('input[name="type"]:checked').value;
- records.unshift({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type,amount,date:$("date").value,category:$("category").value,note:$("note").value.trim()});
- save();$("amount").value="";$("note").value="";render();
-});
-function monthKey(d){return d.slice(0,7)}
-function render(){
- const now=localDate(new Date()).slice(0,7);
- const totalIn=records.filter(x=>x.type==="income").reduce((s,x)=>s+x.amount,0);
- const totalOut=records.filter(x=>x.type==="expense").reduce((s,x)=>s+x.amount,0);
- const mi=records.filter(x=>x.type==="income"&&monthKey(x.date)===now).reduce((s,x)=>s+x.amount,0);
- const me=records.filter(x=>x.type==="expense"&&monthKey(x.date)===now).reduce((s,x)=>s+x.amount,0);
- $("balance").textContent=money(totalIn-totalOut);$("monthIncome").textContent=money(mi);$("monthExpense").textContent=money(me);
- const months=[...new Set(records.map(x=>monthKey(x.date)))].sort().reverse();
- const old=$("filterMonth").value;$("filterMonth").innerHTML='<option value="all">সব মাস</option>'+months.map(m=>`<option value="${m}">${m}</option>`).join("");$("filterMonth").value=months.includes(old)?old:"all";
- let list=records.filter(x=>($("filterMonth").value==="all"||monthKey(x.date)===$("filterMonth").value)&&($("filterType").value==="all"||x.type===$("filterType").value));
- $("transactions").innerHTML=list.length?list.map(x=>`<div class="tx"><div class="dot">${x.type==="income"?"↙":"↗"}</div><div class="txmain"><b>${esc(x.note||x.category)}</b><small>${esc(x.category)} · ${esc(x.date)}</small></div><div class="amount ${x.type}">${x.type==="income"?"+":"−"}${money(x.amount)}</div><button class="danger" title="মুছুন" aria-label="মুছুন" onclick="removeRecord('${x.id}')">×</button></div>`).join(""):'<div class="empty">এখনো কোনো লেনদেন যোগ করা হয়নি।<br>উপরের ফর্ম থেকে প্রথম হিসাবটি যোগ করুন।</div>';
-}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-window.removeRecord=id=>{if(confirm("এই লেনদেনটি মুছে ফেলবেন?")){records=records.filter(x=>x.id!==id);save();render()}};
-$("filterMonth").addEventListener("change",render);$("filterType").addEventListener("change",render);
-$("csvBtn").addEventListener("click",()=>{
- const rows=[["তারিখ","ধরন","ক্যাটাগরি","বিবরণ","পরিমাণ"],...records.map(x=>[x.date,x.type==="income"?"আয়":"খরচ",x.category,x.note,x.amount])];
- const csv="\uFEFF"+rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
- const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="daily-hisab.csv";a.click();URL.revokeObjectURL(a.href);
-});
-render();
-if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-</script>
-</body></html>
+  <header>
+    <div class="top">
+      <h2>দৈনিক হিসাব</h2>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="balance">
+      <small>বর্তমান ব্যালেন্স</small>
+      <div class="big" id="balance">৳0</div>
+    </section>
+
+    <section class="stats">
+      <div class="stat in">মোট আয়<br><span id="totalIn">৳0</span></div>
+      <div class="stat out">মোট খরচ<br><span id="totalOut">৳0</span></div>
+    </section>
+
+    <section class="section">
+      <h3>নতুন লেনদেন</h3>
+      <form id="entryForm">
+        <div class="types">
+          <label><input type="radio" name="type" value="expense" checked> খরচ</label>
+          <label><input type="radio" name="type" value="income"> আয়</label>
+        </div>
+        <div class="row" style="display:flex; gap:10px;">
+          <label class="field" style="flex:1;">টাকার পরিমাণ (৳)
+            <input type="number" id="amount" required placeholder="0.00">
+          </label>
+          <label class="field" style="flex:1;">তারিখ
+            <input type="date" id="date" required>
+          </label>
+        </div>
+        <div class="row" style="display:flex; gap:10px;">
+          <label class="field" style="flex:1;">ক্যাটাগরি
+            <select id="category"></select>
+          </label>
+          <label class="field" style="flex:1;">বিবরণ
+            <input type="text" id="note" placeholder="ঐচ্ছিক">
+          </label>
+        </div>
+        <button type="submit">লেনদেন সংরক্ষণ করুন</button>
+      </form>
+    </section>
+
+    <!-- Pie Chart Section -->
+    <section class="section">
+      <h3>খরচের পাই চার্ট (Pie Chart)</h3>
+      <div class="chart-container">
+        <canvas id="expenseChart"></canvas>
+      </div>
+    </section>
+
+    <div class="section">
+      <h3>লেনদেনের তালিকা</h3>
+      <div class="filters">
+        <select id="filterYear" aria-label="বছর"></select>
+        <select id="filterMonth" aria-label="মাস"></select>
+        <select id="filterType" aria-label="ধরন">
+          <option value="all">সব ধরন</option>
+          <option value="expense">খরচ</option>
+          <option value="income">আয়</option>
+        </select>
+      </div>
+      <div id="transactions"></div>
+    </div>
+
+    <!-- Data Export/Import Backup Section -->
+    <section class="section">
+      <h3>ডাটা ব্যাকআপ ও রিস্টোর</h3>
+      <div class="btn-group">
+        <button id="csvBtn" class="btn-outline">CSV ডাউনলোড</button>
+        <button id="exportJsonBtn">JSON ব্যাকআপ</button>
+      </div>
+      <div style="margin-top: 10px;">
+        <label class="field">JSON ফাইল থেকে ডাটা রিস্টোর করুন:
+          <input type="file" id="importJsonInput" accept=".json">
+        </label>
+      </div>
+    </section>
+
+    <footer>আপনার তথ্য এই ডিভাইসের ব্রাউজারেই সংরক্ষিত থাকে</footer>
+  </main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const categories = {
+      expense: ["খাবার", "বাজার", "যাতায়াত", "বাড়ি ভাড়া", "বিল", "কেনাকাটা", "অন্যান্য"],
+      income: ["বেতন", "ব্যবসা", "ফ্রিল্যান্সিং", "উপহার", "অন্যান্য"]
+    };
+
+    let records = [];
+    try { records = JSON.parse(localStorage.getItem("daily_records")) || []; } catch(e){ records = []; }
+
+    const today = new Date();
+    $("date").value = today.toISOString().split('T')[0];
+
+    function money(n) { return "৳" + Number(n || 0).toLocaleString('bn-BD'); }
+
+    function save() {
+      localStorage.setItem("daily_records", JSON.stringify(records));
+      render();
+    }
+
+    function setCategories() {
+      const type = document.querySelector('input[name="type"]:checked').value;
+      const catSelect = $("category");
+      catSelect.innerHTML = categories[type].map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener('change', setCategories));
+    setCategories();
+
+    $("entryForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const amount = Number($("amount").value);
+      const date = $("date").value;
+      const category = $("category").value;
+      const note = $("note").value;
+      const type = document.querySelector('input[name="type"]:checked').value;
+
+      if(!amount || !date) return;
+
+      records.unshift({ id: Date.now().toString(36), amount, date, category, note, type });
+      save();
+      $("amount").value = "";
+      $("note").value = "";
+    });
+
+    let chartInstance = null;
+    function updateChart(filteredRecords) {
+      const expenses = filteredRecords.filter(r => r.type === "expense");
+      const catTotals = {};
+      expenses.forEach(r => {
+        catTotals[r.category] = (catTotals[r.category] || 0) + r.amount;
+      });
+
+      const labels = Object.keys(catTotals);
+      const data = Object.values(catTotals);
+
+      const ctx = $("expenseChart").getContext("2d");
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8AC926']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+    }
+
+    function populateYearFilter() {
+      const years = [...new Set(records.map(r => r.date.slice(0,4)))];
+      if(!years.includes(today.getFullYear().toString())) years.push(today.getFullYear().toString());
+      years.sort((a,b) => b-a);
+      
+      const currentVal = $("filterYear").value;
+      $("filterYear").innerHTML = `<option value="all">সব বছর</option>` + years.map(y => `<option value="${y}">${y}</option>`).join('');
+      if(currentVal) $("filterYear").value = currentVal;
+    }
+
+    function populateMonthFilter() {
+      const months = [
+        {val: "all", text: "সব মাস"},
+        {val: "01", text: "জানুয়ারি"}, {val: "02", text: "ফেব্রুয়ারি"}, {val: "03", text: "মার্চ"},
+        {val: "04", text: "এপ্রিল"}, {val: "05", text: "মে"}, {val: "06", text: "জুন"},
+        {val: "07", text: "জুলাই"}, {val: "08", text: "আগস্ট"}, {val: "09", text: "সেপ্টেম্বর"},
+        {val: "10", text: "অক্টোবর"}, {val: "11", text: "নভেম্বর"}, {val: "12", text: "ডিসেম্বর"}
+      ];
+      const currentVal = $("filterMonth").value;
+      $("filterMonth").innerHTML = months.map(m => `<option value="${m.val}">${m.text}</option>`).join('');
+      if(currentVal) $("filterMonth").value = currentVal;
+    }
+
+    function render() {
+      populateYearFilter();
+      populateMonthFilter();
+
+      const yearFilter = $("filterYear").value || "all";
+      const monthFilter = $("filterMonth").value || "all";
+      const typeFilter = $("filterType").value || "all";
+
+      let filtered = records.filter(r => {
+        const matchYear = yearFilter === "all" || r.date.startsWith(yearFilter);
+        const matchMonth = monthFilter === "all" || r.date.slice(5,7) === monthFilter;
+        const matchType = typeFilter === "all" || r.type === typeFilter;
+        return matchYear && matchMonth && matchType;
+      });
+
+      const totalIn = filtered.filter(r => r.type === "income").reduce((s,r) => s + r.amount, 0);
+      const totalOut = filtered.filter(r => r.type === "expense").reduce((s,r) => s + r.amount, 0);
+
+      $("totalIn").textContent = money(totalIn);
+      $("totalOut").textContent = money(totalOut);
+      $("balance").textContent = money(totalIn - totalOut);
+
+      const txContainer = $("transactions");
+      if(filtered.length === 0) {
+        txContainer.innerHTML = `<p style="text-align:center; color:var(--muted);">কোনো লেনদেন পাওয়া যায়নি</p>`;
+      } else {
+        txContainer.innerHTML = filtered.map(r => `
+          <div class="tx">
+            <div>
+              <strong>${r.category}</strong> <small>(${r.date})</small><br>
+              <small style="color:var(--muted);">${r.note || ''}</small>
+            </div>
+            <div>
+              <span style="font-weight:bold; color:${r.type==='income'?'#2e7d32':'#c62828'};">
+                ${r.type==='income'?'+':'-'}${money(r.amount)}
+              </span>
+              <button onclick="deleteRecord('${r.id}')" style="padding:3px 8px; margin-left:8px; background:#e53935; font-size:12px;">×</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      updateChart(filtered);
+    }
+
+    window.deleteRecord = id => {
+      if(confirm("আপনি কি এই লেনদেনটি মুছে ফেলতে চান?")) {
+        records = records.filter(r => r.id !== id);
+        save();
+      }
+    };
+
+    $("filterYear").addEventListener("change", render);
+    $("filterMonth").addEventListener("change", render);
+    $("filterType").addEventListener("change", render);
+
+    // CSV Export
+    $("csvBtn").addEventListener("click", () => {
+      const rows = [["তারিখ", "ধরন", "ক্যাটাগরি", "বিবরণ", "টাকা"]];
+      records.forEach(r => rows.push([r.date, r.type==='income'?'আয়':'খরচ', r.category, r.note, r.amount]));
+      const csvContent = "\uFEFF" + rows.map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `daily_hisab_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    });
+
+    // JSON Export (Backup)
+    $("exportJsonBtn").addEventListener("click", () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(records, null, 2));
+      const a = document.createElement("a");
+      a.href = dataStr;
+      a.download = `daily_hisab_backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+    });
+
+    // JSON Import (Restore)
+    $("importJsonInput").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = event => {
+        try {
+          const importedRecords = JSON.parse(event.target.result);
+          if(Array.isArray(importedRecords)) {
+            records = importedRecords;
+            save();
+            alert("ডাটা সফলভাবে রিস্টোর হয়েছে!");
+          } else {
+            alert("ভুল ফাইল ফর্ম্যাট!");
+          }
+        } catch(err) {
+          alert("JSON ফাইল পড়তে সমস্যা হয়েছে!");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    render();
+
+    // Service Worker Registration for PWA
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
+  </script>
+</body>
+</html>
