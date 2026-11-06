@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#163b32">
+<meta name="description" content="ব্যক্তিগত দৈনিক আয় ও ব্যয়ের হিসাব">
+<link rel="manifest" href="manifest.webmanifest">
+<title>দৈনিক হিসাব</title>
+<style>
+:root{--green:#163b32;--mint:#e8f3ee;--bg:#f5f7f5;--ink:#17231f;--muted:#718078;--line:#e4eae6;--red:#c64b4b;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif}
+header{background:var(--green);color:white;padding:24px 18px 30px;border-radius:0 0 24px 24px}
+.top{max-width:760px;margin:auto;display:flex;align-items:center;justify-content:space-between}.brand{font-size:22px;font-weight:800}.sub{font-size:13px;opacity:.78;margin-top:3px}
+.wrap{max-width:760px;margin:-12px auto 32px;padding:0 14px}
+.balance{background:white;border-radius:18px;padding:18px;box-shadow:0 8px 24px #183c3210}
+.balance small{color:var(--muted)}.big{font-size:32px;font-weight:800;margin:4px 0 12px;color:var(--green)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#f8faf8;border-radius:13px;padding:12px}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:18px;margin-top:5px}.income{color:#188454}.expense{color:var(--red)}
+.section{display:flex;align-items:center;justify-content:space-between;margin:22px 2px 10px}.section h2{font-size:17px;margin:0}.muted{color:var(--muted);font-size:12px}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:12px}
+form{display:grid;gap:11px}.types{display:grid;grid-template-columns:1fr 1fr;gap:8px}.types label{border:1px solid var(--line);border-radius:12px;padding:11px;text-align:center;font-weight:700;cursor:pointer}.types input{display:none}.types label:has(input:checked){background:var(--mint);border-color:#7ba895;color:var(--green)}
+label.field{display:grid;gap:5px;font-size:13px;color:#536159}input,select{width:100%;border:1px solid #dce4de;border-radius:10px;padding:12px;background:white;font:inherit;color:var(--ink);min-height:44px}
+button{border:0;border-radius:11px;background:var(--green);color:white;padding:13px 16px;font:inherit;font-weight:700;cursor:pointer}.secondary{background:var(--mint);color:var(--green)}.danger{background:#fff0f0;color:var(--red);padding:8px 10px}.row{display:flex;gap:9px}.row>*{flex:1;min-width:0}
+.filters{display:flex;gap:8px;flex-wrap:wrap}.filters select{flex:1;min-width:130px}
+.tx{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}.tx:last-child{border:0}.dot{width:38px;height:38px;border-radius:12px;background:var(--mint);display:grid;place-items:center;font-size:18px}.txmain{flex:1;min-width:0}.txmain b{display:block;font-size:14px}.txmain small{color:var(--muted);font-size:11px}.amount{font-weight:800;white-space:nowrap}.empty{text-align:center;color:var(--muted);padding:25px 5px;font-size:14px}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:10px 0 25px}
+@media(min-width:600px){header{padding-top:30px}.wrap{padding:0 18px}.big{font-size:36px}}
+</style>
+</head>
+<body>
+<header><div class="top"><div><div class="brand">দৈনিক হিসাব</div><div class="sub">আপনার ব্যক্তিগত আয়-ব্যয়ের সঙ্গী</div></div><div style="font-size:26px">৳</div></div></header>
+<main class="wrap">
+<section class="balance">
+ <small>বর্তমান মোট ব্যালেন্স</small><div class="big" id="balance">৳০</div>
+ <div class="stats">
+  <div class="stat"><span>এই মাসের আয়</span><strong class="income" id="monthIncome">৳০</strong></div>
+  <div class="stat"><span>এই মাসের খরচ</span><strong class="expense" id="monthExpense">৳০</strong></div>
+ </div>
+</section>
+<div class="section"><h2>নতুন লেনদেন যোগ করুন</h2><span class="muted">দ্রুত হিসাব</span></div>
+<section class="card">
+<form id="entryForm">
+ <div class="types">
+  <label><input type="radio" name="type" value="expense" checked> − খরচ</label>
+  <label><input type="radio" name="type" value="income"> + আয়</label>
+ </div>
+ <div class="row">
+  <label class="field">টাকার পরিমাণ (৳)<input id="amount" type="number" min="0.01" step="0.01" placeholder="যেমন ৫০০" required></label>
+  <label class="field">তারিখ<input id="date" type="date" required></label>
+ </div>
+ <div class="row">
+  <label class="field">ক্যাটাগরি<select id="category"></select></label>
+  <label class="field">বিবরণ<input id="note" maxlength="80" placeholder="যেমন বাজার খরচ"></label>
+ </div>
+ <button type="submit">লেনদেন সংরক্ষণ করুন</button>
+</form>
+</section>
+<div class="section"><h2>লেনদেনের তালিকা</h2><button class="secondary" id="csvBtn" type="button">CSV ডাউনলোড</button></div>
+<section class="card">
+ <div class="filters">
+  <select id="filterMonth" aria-label="মাস"><option value="all">সব মাস</option></select>
+  <select id="filterType" aria-label="ধরন"><option value="all">সব লেনদেন</option><option value="income">শুধু আয়</option><option value="expense">শুধু খরচ</option></select>
+ </div>
+ <div id="transactions"></div>
+</section>
+<footer>আপনার তথ্য এই ডিভাইসের ব্রাউজারেই সংরক্ষিত থাকে। নিয়মিত CSV ব্যাকআপ রাখুন।</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const categories={
+ expense:["খাবার","বাজার","যাতায়াত","বাড়ি ভাড়া","বিদ্যুৎ/গ্যাস/পানি","চিকিৎসা","শিক্ষা","কেনাকাটা","বিনোদন","অন্যান্য"],
+ income:["বেতন","ব্যবসা","ফ্রিল্যান্সিং","উপহার","অন্যান্য"]
+};
+let records=[];
+try{records=JSON.parse(localStorage.getItem("dailyHisabRecords")||"[]")}catch(e){records=[]}
+const today=new Date(); $("date").value=localDate(today);
+function localDate(d){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
+function money(n){return "৳"+Number(n||0).toLocaleString("bn-BD",{maximumFractionDigits:2})}
+function save(){localStorage.setItem("dailyHisabRecords",JSON.stringify(records))}
+function setCategories(){const t=document.querySelector('input[name="type"]:checked').value; $("category").innerHTML=categories[t].map(x=>`<option>${x}</option>`).join("")}
+document.querySelectorAll('input[name="type"]').forEach(x=>x.addEventListener("change",setCategories));setCategories();
+$("entryForm").addEventListener("submit",e=>{
+ e.preventDefault();const amount=Number($("amount").value);if(!(amount>0))return;
+ const type=document.querySelector('input[name="type"]:checked').value;
+ records.unshift({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),type,amount,date:$("date").value,category:$("category").value,note:$("note").value.trim()});
+ save();$("amount").value="";$("note").value="";render();
+});
+function monthKey(d){return d.slice(0,7)}
+function render(){
+ const now=localDate(new Date()).slice(0,7);
+ const totalIn=records.filter(x=>x.type==="income").reduce((s,x)=>s+x.amount,0);
+ const totalOut=records.filter(x=>x.type==="expense").reduce((s,x)=>s+x.amount,0);
+ const mi=records.filter(x=>x.type==="income"&&monthKey(x.date)===now).reduce((s,x)=>s+x.amount,0);
+ const me=records.filter(x=>x.type==="expense"&&monthKey(x.date)===now).reduce((s,x)=>s+x.amount,0);
+ $("balance").textContent=money(totalIn-totalOut);$("monthIncome").textContent=money(mi);$("monthExpense").textContent=money(me);
+ const months=[...new Set(records.map(x=>monthKey(x.date)))].sort().reverse();
+ const old=$("filterMonth").value;$("filterMonth").innerHTML='<option value="all">সব মাস</option>'+months.map(m=>`<option value="${m}">${m}</option>`).join("");$("filterMonth").value=months.includes(old)?old:"all";
+ let list=records.filter(x=>($("filterMonth").value==="all"||monthKey(x.date)===$("filterMonth").value)&&($("filterType").value==="all"||x.type===$("filterType").value));
+ $("transactions").innerHTML=list.length?list.map(x=>`<div class="tx"><div class="dot">${x.type==="income"?"↙":"↗"}</div><div class="txmain"><b>${esc(x.note||x.category)}</b><small>${esc(x.category)} · ${esc(x.date)}</small></div><div class="amount ${x.type}">${x.type==="income"?"+":"−"}${money(x.amount)}</div><button class="danger" title="মুছুন" aria-label="মুছুন" onclick="removeRecord('${x.id}')">×</button></div>`).join(""):'<div class="empty">এখনো কোনো লেনদেন যোগ করা হয়নি।<br>উপরের ফর্ম থেকে প্রথম হিসাবটি যোগ করুন।</div>';
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+window.removeRecord=id=>{if(confirm("এই লেনদেনটি মুছে ফেলবেন?")){records=records.filter(x=>x.id!==id);save();render()}};
+$("filterMonth").addEventListener("change",render);$("filterType").addEventListener("change",render);
+$("csvBtn").addEventListener("click",()=>{
+ const rows=[["তারিখ","ধরন","ক্যাটাগরি","বিবরণ","পরিমাণ"],...records.map(x=>[x.date,x.type==="income"?"আয়":"খরচ",x.category,x.note,x.amount])];
+ const csv="\uFEFF"+rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="daily-hisab.csv";a.click();URL.revokeObjectURL(a.href);
+});
+render();
+if("serviceWorker" in navigator && location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+</script>
+</body></html>
